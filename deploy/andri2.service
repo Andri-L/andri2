@@ -1,0 +1,16 @@
+[Unit]
+Description=Andri2 Discord Bot
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/node index.js
+WorkingDirectory=/opt/andri2
+Restart=always
+RestartSec=3
+StartLimitBurst=5
+StartLimitIntervalSec=60
+EnvironmentFile=/opt/andri2/.env
+
+[Install]
+WantedBy=multi-user.target
