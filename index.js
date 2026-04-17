@@ -21,7 +21,9 @@ client.on('messageCreate', async (message) => {
 
     // --- a!ping ---
     if (message.content === 'a!ping') {
-        message.reply('Pong! 🏓');
+        const sent = await message.reply('🏓 Pinging...');
+        const roundTrip = sent.createdTimestamp - message.createdTimestamp;
+        await sent.edit(`🏓 Pong! **${roundTrip}ms** (API) | **${client.ws.ping}ms** (WebSocket)`);
         return;
     }
 
