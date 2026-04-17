@@ -36,7 +36,7 @@ client.on('messageCreate', async (message) => {
 
         const statusMsg = await message.reply('🔄 Pulling latest changes from GitHub...');
 
-        exec('git pull && npm install --omit=dev', { cwd: __dirname, timeout: 60000 }, async (error, stdout, stderr) => {
+        exec('git pull && (pnpm install --frozen-lockfile 2>&1 || true)', { cwd: __dirname, timeout: 60000 }, async (error, stdout, stderr) => {
             if (error) {
                 const errOutput = (stderr || error.message).slice(0, 1500);
                 await statusMsg.edit(`❌ Update failed:\n\`\`\`\n${errOutput}\n\`\`\``);
