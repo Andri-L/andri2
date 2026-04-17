@@ -4,13 +4,14 @@ After=network.target
 
 [Service]
 Type=simple
+User=ubuntu
 ExecStart=/usr/bin/node index.js
-WorkingDirectory=/opt/andri2
+WorkingDirectory=/home/ubuntu/projects/andri2
 Restart=always
 RestartSec=3
 StartLimitBurst=5
 StartLimitIntervalSec=60
-EnvironmentFile=/opt/andri2/.env
+EnvironmentFile=/home/ubuntu/projects/andri2/.env
 
 [Install]
 WantedBy=multi-user.target
