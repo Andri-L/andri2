@@ -1,6 +1,8 @@
 require('dotenv').config();
 const { Client, GatewayIntentBits } = require('discord.js');
 const { exec } = require('child_process');
+const promptCmd = require('./commands/prompt');
+const resetCmd = require('./commands/reset');
 
 const OWNER_ID = '388900482288189451';
 
@@ -24,6 +26,18 @@ client.on('messageCreate', async (message) => {
         const sent = await message.reply('🏓 Pinging...');
         const roundTrip = sent.createdTimestamp - message.createdTimestamp;
         await sent.edit(`🏓 Pong! **${roundTrip}ms** (API) | **${client.ws.ping}ms** (WebSocket)`);
+        return;
+    }
+
+    // --- a!prompt <text> ---
+    if (message.content.startsWith('a!prompt ')) {
+        await promptCmd.execute(message);
+        return;
+    }
+
+    // --- a!reset ---
+    if (message.content === 'a!reset') {
+        await resetCmd.execute(message);
         return;
     }
 
@@ -52,4 +66,4 @@ client.on('messageCreate', async (message) => {
     }
 });
 
-client.login(process.env.DISCORD_TOKEN);
+client.login(process.env.DISCORD_TOKEN);
