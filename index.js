@@ -29,8 +29,8 @@ client.on('messageCreate', async (message) => {
         return;
     }
 
-    // --- a!prompt <text> ---
-    if (message.content.startsWith('a!prompt ')) {
+    // --- @mention → GoAgent ---
+    if (message.mentions.has(client.user)) {
         await promptCmd.execute(message);
         return;
     }

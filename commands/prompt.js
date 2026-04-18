@@ -1,11 +1,7 @@
 const GOAGENT_URL = process.env.GOAGENT_URL || 'http://localhost:8081';
 
 async function execute(message) {
-    const prompt = message.content.slice(9).trim();
-    if (!prompt) {
-        message.reply('❌ Usage: `a!prompt <your question>`');
-        return;
-    }
+    const prompt = message.content;
 
     // Show typing indicator while GoAgent processes
     await message.channel.sendTyping();
