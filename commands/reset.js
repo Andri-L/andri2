@@ -1,4 +1,4 @@
-const GOAGENT_URL = process.env.GOAGENT_URL || 'http://localhost:8081';
+const GOAGENT_URL = process.env.GOAGENT_URL || 'http://localhost:8080';
 
 async function execute(message) {
     try {
