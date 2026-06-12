@@ -11,6 +11,7 @@ const client = new Client({
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent,
+        GatewayIntentBits.DirectMessages,
     ],
 });
 
@@ -20,6 +21,15 @@ client.once('ready', () => {
 
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
+
+    if (!message.guild) {
+        if (message.content === 'a!reset') {
+            await resetCmd.execute(message);
+            return;
+        }
+        await promptCmd.execute(message);
+        return;
+    }
 
     // --- a!ping ---
     if (message.content === 'a!ping') {
