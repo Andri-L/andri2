@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { Client, GatewayIntentBits } = require('discord.js');
+const { Client, GatewayIntentBits, Partials } = require('discord.js');
 const { exec } = require('child_process');
 const promptCmd = require('./commands/prompt');
 const resetCmd = require('./commands/reset');
@@ -13,6 +13,7 @@ const client = new Client({
         GatewayIntentBits.MessageContent,
         GatewayIntentBits.DirectMessages,
     ],
+    partials: [Partials.Channel],
 });
 
 client.once('ready', () => {
