@@ -23,6 +23,7 @@ client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
 
     if (!message.guild) {
+        console.log(`[DM] ${message.author.tag}: ${message.content}`);
         if (message.content === 'a!reset') {
             await resetCmd.execute(message);
             return;
