@@ -18,6 +18,7 @@ The bot is **LLM-agnostic** — GoAgent handles all LLM communication. To switch
 |---------|-------|-------------|
 | `a!ping` | Server | Check bot latency |
 | `a!reset` | Server / DM | Clear your conversation history |
+| `a!voicereset` | Server / DM | Clear the voice (BMO) conversation history |
 | `@mention` | Server | Ask the AI a question |
 | DM (any text) | DM | Chat with the AI privately |
 | `a!update` | Owner | Git pull + restart the bot |

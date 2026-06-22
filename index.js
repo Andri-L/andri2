@@ -3,6 +3,7 @@ const { Client, GatewayIntentBits, Partials } = require('discord.js');
 const { exec } = require('child_process');
 const promptCmd = require('./commands/prompt');
 const resetCmd = require('./commands/reset');
+const voiceresetCmd = require('./commands/voicereset');
 
 const OWNER_ID = '388900482288189451';
 
@@ -28,6 +29,10 @@ client.on('messageCreate', async (message) => {
             await resetCmd.execute(message);
             return;
         }
+        if (message.content === 'a!voicereset') {
+            await voiceresetCmd.execute(message);
+            return;
+        }
         await promptCmd.execute(message);
         return;
     }
@@ -49,6 +54,12 @@ client.on('messageCreate', async (message) => {
     // --- a!reset ---
     if (message.content === 'a!reset') {
         await resetCmd.execute(message);
+        return;
+    }
+
+    // --- a!voicereset ---
+    if (message.content === 'a!voicereset') {
+        await voiceresetCmd.execute(message);
         return;
     }
 
