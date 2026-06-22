@@ -97,7 +97,7 @@ client.on('messageCreate', async (message) => {
 
         const statusMsg = await message.reply(`🔄 Switching LLM model to **${modelName}** and restarting GoAgent...`);
 
-        const script = `sudo sed -i 's/^MODEL_NAME=.*/MODEL_NAME=${modelName}/' /opt/goagent/.env && sudo systemctl restart goagent`;
+        const script = `sudo sed -i 's|^MODEL_NAME=.*|MODEL_NAME=${modelName}|' /opt/goagent/.env && sudo systemctl restart goagent`;
 
         exec(script, { timeout: 30000 }, async (error, stdout, stderr) => {
             if (error) {
