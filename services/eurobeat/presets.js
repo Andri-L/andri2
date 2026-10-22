@@ -18,35 +18,38 @@ const BASE_FINISH = {
 const TONES = {
   clara: {
     label: 'Clara',
-    description: 'Más luz y detalle en las sombras',
+    description: 'Más alegre y energética; sirve para fotos brillantes o para aclarar caras',
+    options: {
+      exposure: 1,
+      gamma: 1.0,
+      whitePoint: 1,
+      blackPoint: 0.01,
+      vignetteStrength: 0.28,
+      saturation: 0.2,
+    },
+  },
+  'baja-saturacion': {
+    label: 'Baja saturación',
+    description: 'Tinte sutil, tono de recuerdo o literario',
     options: {
       exposure: 1,
       gamma: 1.2,
       whitePoint: 1,
       blackPoint: 0.02,
       vignetteStrength: 0.35,
+      saturation: 0.07,
     },
   },
-  equilibrada: {
-    label: 'Equilibrada',
-    description: 'Contraste medio, look de portada',
+  contraste: {
+    label: 'Contraste',
+    description: 'Más dramática: tinte marcado y negros exaltados',
     options: {
       exposure: 1,
       gamma: 1.8,
       whitePoint: 1,
       blackPoint: 0.03,
       vignetteStrength: 0.42,
-    },
-  },
-  oscura: {
-    label: 'Oscura',
-    description: 'Low-key marcado, casi negro',
-    options: {
-      exposure: 1,
-      gamma: 3.4,
-      whitePoint: 0.96,
-      blackPoint: 0.055,
-      vignetteStrength: 0.5,
+      saturation: 0.15,
     },
   },
 };
@@ -94,11 +97,11 @@ function randomVolume() {
 }
 
 /**
- * Combina acabado base + tonalidad + modo final.
+ * Combina acabado base + estilo + modo final.
  * @param {{toneKey:string, modeKey:'full'|'cover', size:number, volume?:number}} options
  */
 function buildOptions({ toneKey, modeKey, size, volume }) {
-  const tone = TONES[toneKey] || TONES.equilibrada;
+  const tone = TONES[toneKey] || TONES.clara;
   const mode = MODES[modeKey] || MODES.full;
   const vol = volume ?? randomVolume();
 

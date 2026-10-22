@@ -33,7 +33,7 @@ const cooldowns = new Map();
 const HELP = `🎨 **Super Eurobeat**
 Adjuntá una imagen o respondé a una imagen con \`a!eurobeat\`.
 
-Te muestro 3 previsualizaciones de brillo en baja resolución. Después elegís si querés la versión con texto o sin texto.
+Te muestro 3 estilos (luz, saturación y contraste) en baja resolución. Después elegís si querés la versión con texto o sin texto.
 Si elegís con texto: \`SUPER EUROBEAT\` + un volumen aleatorio entre 1 y 100.
 
 La salida conserva la resolución original, con un máximo de 4000 px en el lado mayor.
@@ -249,10 +249,10 @@ async function execute(message) {
 
     await statusMessage.edit({
       content:
-        '🎛️ **Elegí la tonalidad**\n' +
-        'Te muestro la misma foto con 3 niveles de brillo. Después elegís si querés texto.\n' +
+        '🎛️ **Elegí el estilo**\n' +
+        'Te muestro la misma foto con 3 configuraciones de luz, saturación y contraste. Después elegís si querés texto.\n' +
         '*El preview es de baja resolución; el render final respeta la resolución original (máx. 4000 px).*',
-      files: [{ attachment: sheet, name: 'eurobeat-tonos.png' }],
+      files: [{ attachment: sheet, name: 'eurobeat-estilos.png' }],
       components: [toneRow()],
     });
   } catch (error) {
@@ -298,14 +298,14 @@ async function handleInteraction(interaction) {
     if (customId.startsWith('eurobeat:tone:')) {
       const toneKey = customId.split(':')[2];
       if (!TONES[toneKey]) {
-        await interaction.reply({ content: '❌ Tonalidad desconocida.', flags: MessageFlags.Ephemeral });
+        await interaction.reply({ content: '❌ Estilo desconocido.', flags: MessageFlags.Ephemeral });
         return true;
       }
 
       state.tone = toneKey;
       await interaction.update({
         content:
-          `🎚️ Tonalidad elegida: **${TONES[toneKey].label}**\n\n` +
+          `🎚️ Estilo elegido: **${TONES[toneKey].label}**\n\n` +
           '¿Querés que la imagen final lleve texto?\n' +
           'Si sí: `SUPER EUROBEAT` + `VOL. N` (N aleatorio entre 1 y 100).',
         components: [textRow()],
@@ -315,7 +315,7 @@ async function handleInteraction(interaction) {
 
     if (customId.startsWith('eurobeat:text:')) {
       if (!state.tone) {
-        await interaction.reply({ content: '❌ Elegí primero una tonalidad.', flags: MessageFlags.Ephemeral });
+        await interaction.reply({ content: '❌ Elegí primero un estilo.', flags: MessageFlags.Ephemeral });
         return true;
       }
 
@@ -338,7 +338,7 @@ async function handleInteraction(interaction) {
         await interaction.editReply({
           content:
             '✅ **Imagen lista**\n' +
-            `Tonalidad: **${tone.label}** · ${detail}\n` +
+            `Estilo: **${tone.label}** · ${detail}\n` +
             `${final.width}×${final.height}px`,
           files: [{ attachment: final.buffer, name: final.filename }],
           components: [],
