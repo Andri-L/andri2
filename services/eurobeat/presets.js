@@ -62,8 +62,8 @@ const MODES = {
     label: 'Con texto',
     crop: true,
     title: 'SUPER EUROBEAT',
-    bottomFade: 0.9,
-    headroom: 0.135,
+    bottomFade: 0,
+    headroom: 0,
     volumeLetterSpacing: 1,
   },
 };
