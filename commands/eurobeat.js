@@ -221,12 +221,17 @@ async function promptColorSelection(interaction, state, tone, withText) {
   });
 
   for (const option of HUE_OPTIONS) {
-    await colorMessage.react(option.emoji).catch(() => {});
+    await colorMessage
+      .react(option.emoji)
+      .catch((error) => console.error('Eurobeat: no se pudo agregar la reacción', option.emoji, error.message));
   }
+
+  console.log(`Eurobeat: esperando color de ${state.userId} en ${colorMessage.id}`);
 
   collector.on('collect', async (reaction) => {
     const option = HUE_OPTIONS.find((item) => item.emoji === reaction.emoji.name);
     if (!option) return;
+    console.log(`Eurobeat: color elegido por ${state.userId}: ${option.key}`);
 
     try {
       const final = await renderFinal(state, withText, option);
