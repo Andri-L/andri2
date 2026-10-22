@@ -220,8 +220,10 @@ async function promptColorSelection(interaction, state, tone, withText) {
     max: 1,
   });
 
+  // Las reacciones se agregan sin bloquear: el collector ya está escuchando,
+  // así que el usuario puede elegir aunque el bot todavía esté agregando emojis.
   for (const option of HUE_OPTIONS) {
-    await colorMessage
+    colorMessage
       .react(option.emoji)
       .catch((error) => console.error('Eurobeat: no se pudo agregar la reacción', option.emoji, error.message));
   }
@@ -232,6 +234,9 @@ async function promptColorSelection(interaction, state, tone, withText) {
     const option = HUE_OPTIONS.find((item) => item.emoji === reaction.emoji.name);
     if (!option) return;
     console.log(`Eurobeat: color elegido por ${state.userId}: ${option.key}`);
+
+    // Al elegir un color se elimina el mensaje de referencia.
+    await colorMessage.delete().catch(() => {});
 
     try {
       const final = await renderFinal(state, withText, option);
@@ -269,7 +274,8 @@ async function promptColorSelection(interaction, state, tone, withText) {
         .catch(() => {});
       clearState(state.userId);
     }
-    await colorMessage.reactions.removeAll().catch(() => {});
+    // Si quedó sin elegir, también se limpia la referencia.
+    await colorMessage.delete().catch(() => {});
   });
 }
 
