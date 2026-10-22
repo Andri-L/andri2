@@ -61,6 +61,7 @@ const MODES = {
   cover: {
     label: 'Con texto',
     crop: true,
+    zoom: 1,
     title: 'SUPER EUROBEAT',
     bottomFade: 0,
     headroom: 0,
@@ -78,6 +79,14 @@ const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
  */
 function outputSizeFor(width, height) {
   return Math.min(MAX_OUTPUT_SIDE, Math.max(width, height));
+}
+
+/**
+ * Tamaño para el modo con texto: usa el lado menor original (el recorte 1:1),
+ * sin reescalar al lado mayor.
+ */
+function coverSizeFor(width, height) {
+  return Math.min(MAX_OUTPUT_SIDE, Math.min(width, height));
 }
 
 function randomVolume() {
@@ -112,6 +121,7 @@ module.exports = {
   PREVIEW_SIZE,
   TONES,
   buildOptions,
+  coverSizeFor,
   outputSizeFor,
   randomVolume,
 };

@@ -10,12 +10,14 @@ const sharp = require('sharp');
 
 const { createCover } = require('../services/eurobeat/cover');
 const { buildToneSheet } = require('../services/eurobeat/preview');
+const { suggestSquareCrop } = require('../services/eurobeat/faceCrop');
 const {
   MAX_INPUT_BYTES,
   MAX_UPLOAD_BYTES,
   PREVIEW_SIZE,
   TONES,
   buildOptions,
+  coverSizeFor,
   outputSizeFor,
   randomVolume,
 } = require('../services/eurobeat/presets');
@@ -126,13 +128,24 @@ async function renderPreviews(imageBuffer) {
 
 async function renderFinal(state, withText) {
   const volume = withText ? randomVolume() : null;
-  const size = outputSizeFor(state.width, state.height);
+  const size = withText
+    ? coverSizeFor(state.width, state.height)
+    : outputSizeFor(state.width, state.height);
+
   const options = buildOptions({
     toneKey: state.tone,
     modeKey: withText ? 'cover' : 'full',
     size,
     volume,
   });
+
+  if (withText) {
+    // Recorte 1:1 sin zoom, intentando centrar la cara con smartcrop.
+    // Si la imagen ya es cuadrada, `suggestSquareCrop` devuelve null.
+    const suggestedCrop = await suggestSquareCrop(state.imageBuffer, { fallbackFocusY: 0.25 });
+    options.crop = suggestedCrop || true;
+    options.zoom = 1;
+  }
 
   const result = await createCover({ input: state.imageBuffer, ...options });
 

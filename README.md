@@ -40,9 +40,9 @@ Attach an image to the message, or reply to an image with the command. The bot t
 1. Generates a low-resolution comparison sheet with three brightness presets: **Clara**, **Equilibrada** and **Oscura**.
 2. Lets the user choose one with buttons.
 3. Asks whether the final image should include text.
-4. If the user chooses text: crops to 1:1, adds `SUPER EUROBEAT` and a random `VOL. N` (N between 1 and 100).
+4. If the user chooses text: crops to 1:1 without extra zoom, tries to center the face with the lightweight `smartcrop` algorithm, and adds `SUPER EUROBEAT` plus a random `VOL. N` (N between 1 and 100). If no face/region is detected, it falls back to a centered crop.
 5. If the user chooses no text: returns the full image without cropping or typography.
-6. Keeps the original resolution, capped at 4000 px on the longest side.
+6. Keeps the original resolution: the full image is capped at 4000 px on the longest side; the square cover uses the original shorter side (also capped at 4000 px).
 
 Limits and behavior:
 

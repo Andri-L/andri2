@@ -10,6 +10,7 @@ incluye el código y las fuentes necesarias.
 - `imageOps.js` — curvas, tinte, high pass, grano y viñeta.
 - `typography.js` — títulos opcionales.
 - `preview.js` — hoja comparativa de 3 tonalidades.
+- `faceCrop.js` — recorte 1:1 sin zoom con `smartcrop` (liviano, sin modelo pesado).
 - `presets.js` — presets de brillo, modos y tamaños.
 - `assets/fonts/` — Bodoni Moda Black y Oswald Bold (SIL OFL).
 
