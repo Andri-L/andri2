@@ -1,7 +1,7 @@
 {
   "name": "andri2",
-  "version": "1.0.0",
-  "description": "",
+  "version": "1.1.0",
+  "description": "Discord bot gateway for GoAgent with a Super Eurobeat image editor",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -12,7 +12,9 @@
   "license": "ISC",
   "packageManager": "pnpm@10.32.1",
   "dependencies": {
+    "@napi-rs/canvas": "^1.0.13",
     "discord.js": "^14.25.1",
-    "dotenv": "^17.3.1"
+    "dotenv": "^17.3.1",
+    "sharp": "^0.34.5"
   }
 }

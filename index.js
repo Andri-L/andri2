@@ -1,9 +1,10 @@
 require('dotenv').config();
-const { Client, GatewayIntentBits, Partials } = require('discord.js');
+const { Client, GatewayIntentBits, Partials, MessageFlags } = require('discord.js');
 const { exec } = require('child_process');
 const promptCmd = require('./commands/prompt');
 const resetCmd = require('./commands/reset');
 const voiceresetCmd = require('./commands/voicereset');
+const eurobeatCmd = require('./commands/eurobeat');
 
 const OWNER_ID = '388900482288189451';
 
@@ -23,6 +24,12 @@ client.once('ready', () => {
 
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
+
+    // --- a!eurobeat (servidor y DM) ---
+    if (eurobeatCmd.matchesCommand(message.content)) {
+        await eurobeatCmd.execute(message);
+        return;
+    }
 
     if (!message.guild) {
         if (message.content === 'a!reset') {
@@ -122,4 +129,17 @@ client.on('messageCreate', async (message) => {
     }
 });
 
-client.login(process.env.DISCORD_TOKEN);
+client.on('interactionCreate', async (interaction) => {
+    try {
+        await eurobeatCmd.handleInteraction(interaction);
+    } catch (error) {
+        console.error('Interaction error:', error);
+        if (interaction.isRepliable() && !interaction.replied && !interaction.deferred) {
+            await interaction
+                .reply({ content: '❌ Error procesando la interacción.', flags: MessageFlags.Ephemeral })
+                .catch(() => {});
+        }
+    }
+});
+
+client.login(process.env.DISCORD_TOKEN);

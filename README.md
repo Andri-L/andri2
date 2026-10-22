@@ -19,10 +19,38 @@ The bot is **LLM-agnostic** — GoAgent handles all LLM communication. To switch
 | `a!ping` | Server | Check bot latency |
 | `a!reset` | Server / DM | Clear your conversation history |
 | `a!voicereset` | Server / DM | Clear the voice (BMO) conversation history |
+| `a!eurobeat` | Server / DM | Edit an attached image with the Super Eurobeat style |
 | `@mention` | Server | Ask the AI a question |
 | DM (any text) | DM | Chat with the AI privately |
 | `a!update` | Owner | Git pull + restart the bot |
 | `a!model <name>` | Owner | Switch the LLM model (updates GoAgent's `.env`) |
+
+## Eurobeat Image Editor
+
+`a!eurobeat` processes an image with the pipeline vendored in `services/eurobeat/`. The Andri2 deployment does **not** need the external `IMG-TO-EUROBEAT` project.
+
+Usage:
+
+```text
+a!eurobeat
+```
+
+Attach an image to the message, or reply to an image with the command. The bot then:
+
+1. Generates a low-resolution comparison sheet with three brightness presets: **Clara**, **Equilibrada** and **Oscura**.
+2. Lets the user choose one with buttons.
+3. Asks whether the final image should include text.
+4. If the user chooses text: crops to 1:1, adds `SUPER EUROBEAT` and a random `VOL. N` (N between 1 and 100).
+5. If the user chooses no text: returns the full image without cropping or typography.
+6. Renders the final PNG at 1200 px and sends it to Discord.
+
+Limits and behavior:
+
+- One active preview per user, valid for 15 minutes.
+- 20-second cooldown between requests.
+- Input images up to 10 MB.
+- The full pipeline, fonts and preview logic live in `services/eurobeat/`.
+- The final image falls back to 1000 px (or JPEG) if the PNG exceeds Discord's upload limit.
 
 ## Environment Variables
 
@@ -32,6 +60,8 @@ The bot is **LLM-agnostic** — GoAgent handles all LLM communication. To switch
 | `GOAGENT_URL` | No | `http://localhost:8080` | GoAgent server URL |
 
 ## Setup
+
+Requires Node.js 18.17+ (Node 20+ recommended).
 
 ```bash
 # 1. Install dependencies
@@ -53,6 +83,16 @@ Runs as a systemd service on the same VPS as GoAgent:
 sudo cp deploy/andri2.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now andri2
+```
+
+This repository has no GitHub Actions/CI workflow, so updates are deployed manually:
+
+```bash
+cd /home/ubuntu/projects/andri2
+git pull
+pnpm install --frozen-lockfile
+sudo systemctl restart andri2
+sudo systemctl status andri2 --no-pager
 ```
 
 ## Related Projects
