@@ -138,7 +138,11 @@ async function renderTypography(options = {}) {
     const capRatio = capHeightRatio(ctx, volumeFamily);
     const fontSize = targetCapHeight / Math.max(0.4, capRatio);
     const chars = [...volume];
-    const step = chars.length > 1 ? (bottom - top - targetCapHeight) / (chars.length - 1) : 0;
+    const baseStep = chars.length > 1 ? (bottom - top - targetCapHeight) / (chars.length - 1) : 0;
+    const letterSpacing = options.volumeLetterSpacing ?? 0;
+    const step = baseStep + letterSpacing;
+    const totalHeight = targetCapHeight + step * (chars.length - 1);
+    const stackTop = (top + bottom - totalHeight) / 2;
 
     ctx.save();
     ctx.font = `${fontSize}px ${volumeFamily}`;
@@ -148,7 +152,7 @@ async function renderTypography(options = {}) {
 
     const scaleX = options.volumeScaleX ?? 0.92;
     for (let i = 0; i < chars.length; i++) {
-      const baseline = top + targetCapHeight + i * step;
+      const baseline = stackTop + targetCapHeight + i * step;
       ctx.save();
       ctx.translate(x, baseline);
       ctx.scale(scaleX, 1);

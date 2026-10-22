@@ -217,6 +217,7 @@ async function createCover(options = {}) {
       volumeBottom: options.volumeBottom,
       volumeX: options.volumeX,
       volumeCapHeight: options.volumeCapHeight,
+      volumeLetterSpacing: options.volumeLetterSpacing,
     });
     pipeline = pipeline.composite([{ input: textLayer, blend: 'over' }]);
   }
