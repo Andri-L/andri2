@@ -54,6 +54,18 @@ const TONES = {
   },
 };
 
+const HUE_OPTIONS = [
+  { key: 'menta', label: 'Menta', emoji: '🍏', hue: 145, textColor: '#73A990' },
+  { key: 'lima', label: 'Lima', emoji: '🥝', hue: 90, textColor: '#9ec07c' },
+  { key: 'amarillo', label: 'Amarillo', emoji: '🍋', hue: 55, textColor: '#c0ba7c' },
+  { key: 'naranja', label: 'Naranja', emoji: '🍊', hue: 30, textColor: '#c09e7c' },
+  { key: 'rojo', label: 'Rojo', emoji: '🍓', hue: 358, textColor: '#c07c7e' },
+  { key: 'rosa', label: 'Rosa', emoji: '🌸', hue: 330, textColor: '#c07c9e' },
+  { key: 'magenta', label: 'Magenta', emoji: '🍒', hue: 305, textColor: '#c07cba' },
+  { key: 'morado', label: 'Morado', emoji: '🍇', hue: 275, textColor: '#a47cc0' },
+  { key: 'azul', label: 'Azul', emoji: '🫐', hue: 215, textColor: '#7c98c0' },
+];
+
 const MODES = {
   full: {
     label: 'Sin texto',
@@ -117,6 +129,7 @@ function buildOptions({ toneKey, modeKey, size, volume }) {
 
 module.exports = {
   BASE_FINISH,
+  HUE_OPTIONS,
   MAX_INPUT_BYTES,
   MAX_OUTPUT_SIDE,
   MAX_UPLOAD_BYTES,

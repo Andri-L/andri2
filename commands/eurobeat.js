@@ -1,5 +1,7 @@
 'use strict';
 
+const fs = require('fs');
+const path = require('path');
 const {
   ActionRowBuilder,
   ButtonBuilder,
@@ -12,6 +14,7 @@ const { createCover } = require('../services/eurobeat/cover');
 const { buildToneSheet } = require('../services/eurobeat/preview');
 const { suggestSquareCrop } = require('../services/eurobeat/faceCrop');
 const {
+  HUE_OPTIONS,
   MAX_INPUT_BYTES,
   MAX_UPLOAD_BYTES,
   PREVIEW_SIZE,
@@ -21,6 +24,14 @@ const {
   outputSizeFor,
   randomVolume,
 } = require('../services/eurobeat/presets');
+
+const HUE_REFERENCE = fs.readFileSync(
+  path.join(__dirname, '..', 'services', 'eurobeat', 'assets', 'hue_reference.jpg')
+);
+const HUE_PROMPT =
+  '🎨 **Elegí el color**\n' +
+  'Reaccioná con el emoji del color que quieras:\n' +
+  HUE_OPTIONS.map((option) => `${option.emoji} ${option.label}`).join(' · ');
 
 const COOLDOWN_MS = 20_000;
 const TTL_MS = 15 * 60 * 1000;
@@ -34,7 +45,7 @@ const HELP = `🎨 **Super Eurobeat**
 Adjuntá una imagen o respondé a una imagen con \`a!eurobeat\`.
 
 Te muestro 3 estilos (luz, saturación y contraste) en baja resolución. Después elegís si querés la versión con texto o sin texto.
-Si elegís con texto: \`SUPER EUROBEAT\` + un volumen aleatorio entre 1 y 100.
+Si elegís con texto: \`SUPER EUROBEAT\` + un volumen aleatorio entre 1 y 100, y elegís el color reaccionando con un emoji.
 
 La salida conserva la resolución original, con un máximo de 4000 px en el lado mayor.
 Si el PNG supera los 20 MB, se convierte a JPG.
@@ -126,7 +137,7 @@ async function renderPreviews(imageBuffer) {
   );
 }
 
-async function renderFinal(state, withText) {
+async function renderFinal(state, withText, colorOption = null) {
   const volume = withText ? randomVolume() : null;
   const size = withText
     ? coverSizeFor(state.width, state.height)
@@ -138,6 +149,12 @@ async function renderFinal(state, withText) {
     size,
     volume,
   });
+
+  if (colorOption) {
+    options.hue = colorOption.hue;
+    options.titleColor = colorOption.textColor;
+    options.volumeColor = colorOption.textColor;
+  }
 
   if (withText) {
     // Recorte 1:1 sin zoom, intentando centrar la cara con smartcrop.
@@ -170,6 +187,80 @@ async function renderFinal(state, withText) {
     : `super-eurobeat-sin-texto.${extension}`;
 
   return { buffer, filename, volume, width: result.width, height: result.height };
+}
+
+async function promptColorSelection(interaction, state, tone) {
+  await interaction.editReply({
+    content:
+      `🎚️ Estilo: **${tone.label}** · Texto: **SÍ**\n` +
+      'Elegí el color reaccionando con un emoji en el mensaje de abajo.',
+    components: [],
+  });
+
+  const channel = interaction.channel?.partial
+    ? await interaction.channel.fetch()
+    : interaction.channel;
+
+  const colorMessage = await channel.send({
+    content: HUE_PROMPT,
+    files: [{ attachment: HUE_REFERENCE, name: 'hue_reference.jpg' }],
+  });
+
+  const collector = colorMessage.createReactionCollector({
+    filter: (reaction, user) => {
+      if (user.bot) return false;
+      if (user.id !== state.userId) return false;
+      if (pending.get(state.userId) !== state) return false;
+      return HUE_OPTIONS.some((option) => option.emoji === reaction.emoji.name);
+    },
+    time: TTL_MS,
+    max: 1,
+  });
+
+  for (const option of HUE_OPTIONS) {
+    await colorMessage.react(option.emoji).catch(() => {});
+  }
+
+  collector.on('collect', async (reaction) => {
+    const option = HUE_OPTIONS.find((item) => item.emoji === reaction.emoji.name);
+    if (!option) return;
+
+    try {
+      const final = await renderFinal(state, true, option);
+      const detail = `Texto: **SÍ** · \`VOL. ${final.volume}\` · Color: ${option.emoji} ${option.label}`;
+      await interaction.editReply({
+        content:
+          `✅ **Imagen lista**\n` +
+          `Estilo: **${tone.label}** · ${detail}\n` +
+          `${final.width}×${final.height}px`,
+        files: [{ attachment: final.buffer, name: final.filename }],
+        components: [],
+      });
+    } catch (error) {
+      console.error('Eurobeat final render error:', error);
+      await interaction
+        .editReply({
+          content: `❌ ${error.message || 'No se pudo generar la imagen final.'}`,
+          components: [],
+        })
+        .catch(() => {});
+    } finally {
+      clearState(state.userId);
+    }
+  });
+
+  collector.on('end', async (_collected, reason) => {
+    if (reason === 'time' && pending.get(state.userId) === state) {
+      await interaction
+        .editReply({
+          content: '⏰ Se acabó el tiempo para elegir color. Probá de nuevo con `a!eurobeat`.',
+          components: [],
+        })
+        .catch(() => {});
+      clearState(state.userId);
+    }
+    await colorMessage.reactions.removeAll().catch(() => {});
+  });
 }
 
 async function execute(message) {
@@ -329,16 +420,18 @@ async function handleInteraction(interaction) {
 
       await interaction.deferUpdate();
 
+      if (withText) {
+        await promptColorSelection(interaction, state, tone);
+        return true;
+      }
+
       try {
-        const final = await renderFinal(state, withText);
-        const detail = withText
-          ? `Texto: **SÍ** · \`VOL. ${final.volume}\``
-          : 'Texto: **NO**';
+        const final = await renderFinal(state, false);
 
         await interaction.editReply({
           content:
             '✅ **Imagen lista**\n' +
-            `Estilo: **${tone.label}** · ${detail}\n` +
+            `Estilo: **${tone.label}** · Texto: **NO**\n` +
             `${final.width}×${final.height}px`,
           files: [{ attachment: final.buffer, name: final.filename }],
           components: [],
