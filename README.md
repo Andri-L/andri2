@@ -35,7 +35,7 @@ Usage:
 a!eurobeat
 ```
 
-Attach an image to the message, or reply to an image with the command. The bot then:
+Attach an image to the message, reply to an image, mention a user (`a!eurobeat @user`) or pass their ID (`a!eurobeat 123456789012345678`) to use their avatar. The bot then:
 
 1. Generates a low-resolution comparison sheet with three style presets: **Clara**, **Baja saturación** and **Contraste** (chosen after the 5×5 tone/saturation grids in `IMG-TO-EUROBEAT`).
 2. Lets the user choose one with buttons.

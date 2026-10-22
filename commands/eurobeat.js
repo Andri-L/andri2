@@ -44,7 +44,9 @@ const pending = new Map();
 const cooldowns = new Map();
 
 const HELP = `🎨 **Super Eurobeat**
-Adjuntá una imagen o respondé a una imagen con \`a!eurobeat\`.
+Adjuntá una imagen, respondé a una imagen, mencioná a alguien o pasá su ID con \`a!eurobeat\`.
+
+Ejemplos: \`a!eurobeat\` con una imagen adjunta, \`a!eurobeat @usuario\`, \`a!eurobeat 123456789012345678\`.
 
 Te muestro 3 estilos (luz, saturación y contraste) en baja resolución. Después elegís si querés la versión con texto o sin texto.
 En los dos casos elegís el color reaccionando con un emoji.
@@ -87,6 +89,17 @@ async function resolveAttachment(message) {
   }
 
   return null;
+}
+
+function resolveMentionedUser(message) {
+  if (!message.mentions?.users?.size) return null;
+  const users = [...message.mentions.users.values()];
+  return users.find((user) => !user.bot) || users[0];
+}
+
+function extractUserId(content) {
+  const match = String(content).match(/\b\d{17,20}\b/);
+  return match ? match[0] : null;
 }
 
 function toneRow() {
@@ -286,14 +299,28 @@ async function execute(message) {
   }
 
   const attachment = await resolveAttachment(message);
-  if (!attachment) {
+  let mentionedUser = attachment ? null : resolveMentionedUser(message);
+
+  if (!attachment && !mentionedUser) {
+    const userId = extractUserId(message.content);
+    if (userId) {
+      try {
+        mentionedUser = await message.client.users.fetch(userId);
+      } catch {
+        await message.reply('❌ No encontré un usuario con ese ID.');
+        return;
+      }
+    }
+  }
+
+  if (!attachment && !mentionedUser) {
     await message.reply(
-      '🖼️ Necesito una imagen. Adjuntala y escribí `a!eurobeat`, o respondé a una imagen con el comando.'
+      '🖼️ Necesito una imagen. Adjuntala, respondé a una imagen, o mencioná a alguien con `a!eurobeat @usuario` o `a!eurobeat <id>`.'
     );
     return;
   }
 
-  if (attachment.size && attachment.size > MAX_INPUT_BYTES) {
+  if (attachment?.size && attachment.size > MAX_INPUT_BYTES) {
     await message.reply('❌ La imagen supera los 20 MB. Probá con una versión más liviana.');
     return;
   }
@@ -310,7 +337,11 @@ async function execute(message) {
   try {
     await message.channel.sendTyping();
 
-    const response = await fetch(attachment.url);
+    const imageUrl = attachment
+      ? attachment.url
+      : mentionedUser.displayAvatarURL({ extension: 'png', size: 1024, forceStatic: true });
+
+    const response = await fetch(imageUrl);
     if (!response.ok) throw new Error(`No se pudo descargar la imagen (HTTP ${response.status}).`);
 
     const imageBuffer = Buffer.from(await response.arrayBuffer());
@@ -333,7 +364,11 @@ async function execute(message) {
     cooldowns.set(message.author.id, Date.now());
     clearState(message.author.id);
 
-    statusMessage = await message.reply('🎛️ Generando las 3 previsualizaciones...');
+    statusMessage = await message.reply(
+      mentionedUser
+        ? `🎛️ Generando las 3 previsualizaciones de **${mentionedUser.username}**...`
+        : '🎛️ Generando las 3 previsualizaciones...'
+    );
 
     const variants = await renderPreviews(imageBuffer);
     const sheet = await buildToneSheet(variants);
