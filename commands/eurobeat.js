@@ -11,19 +11,18 @@ const sharp = require('sharp');
 const { createCover } = require('../services/eurobeat/cover');
 const { buildToneSheet } = require('../services/eurobeat/preview');
 const {
-  FALLBACK_SIZE,
-  FINAL_SIZE,
+  MAX_INPUT_BYTES,
   MAX_UPLOAD_BYTES,
   PREVIEW_SIZE,
   TONES,
   buildOptions,
+  outputSizeFor,
   randomVolume,
 } = require('../services/eurobeat/presets');
 
 const COOLDOWN_MS = 20_000;
 const TTL_MS = 15 * 60 * 1000;
-const MAX_INPUT_BYTES = 10 * 1024 * 1024;
-const MAX_PIXELS = 40_000_000;
+const MAX_PIXELS = 200_000_000;
 const IMAGE_EXTENSION = /\.(png|jpe?g|webp)$/i;
 
 const pending = new Map();
@@ -34,6 +33,9 @@ Adjuntá una imagen o respondé a una imagen con \`a!eurobeat\`.
 
 Te muestro 3 previsualizaciones de brillo en baja resolución. Después elegís si querés la versión con texto o sin texto.
 Si elegís con texto: \`SUPER EUROBEAT\` + un volumen aleatorio entre 1 y 100.
+
+La salida conserva la resolución original, con un máximo de 4000 px en el lado mayor.
+Si el PNG supera los 20 MB, se convierte a JPG.
 
 Uso: \`a!eurobeat\` (con una imagen adjunta o respondiendo a una).`;
 
@@ -124,17 +126,15 @@ async function renderPreviews(imageBuffer) {
 
 async function renderFinal(state, withText) {
   const volume = withText ? randomVolume() : null;
+  const size = outputSizeFor(state.width, state.height);
   const options = buildOptions({
     toneKey: state.tone,
     modeKey: withText ? 'cover' : 'full',
-    size: FINAL_SIZE,
+    size,
     volume,
   });
 
-  let result = await createCover({ input: state.imageBuffer, ...options });
-  if (result.buffer.length > MAX_UPLOAD_BYTES) {
-    result = await createCover({ input: state.imageBuffer, ...options, size: FALLBACK_SIZE });
-  }
+  const result = await createCover({ input: state.imageBuffer, ...options });
 
   let buffer = result.buffer;
   let extension = 'png';
@@ -142,10 +142,14 @@ async function renderFinal(state, withText) {
   if (buffer.length > MAX_UPLOAD_BYTES) {
     buffer = await sharp(buffer).jpeg({ quality: 90 }).toBuffer();
     extension = 'jpg';
+
+    if (buffer.length > MAX_UPLOAD_BYTES) {
+      buffer = await sharp(buffer).jpeg({ quality: 80 }).toBuffer();
+    }
   }
 
   if (buffer.length > MAX_UPLOAD_BYTES) {
-    throw new Error('La imagen final supera el límite de subida de Discord.');
+    throw new Error('La imagen final supera los 20 MB incluso en JPG.');
   }
 
   const filename = withText
@@ -170,7 +174,7 @@ async function execute(message) {
   }
 
   if (attachment.size && attachment.size > MAX_INPUT_BYTES) {
-    await message.reply('❌ La imagen supera los 10 MB. Probá con una versión más liviana.');
+    await message.reply('❌ La imagen supera los 20 MB. Probá con una versión más liviana.');
     return;
   }
 
@@ -191,7 +195,7 @@ async function execute(message) {
 
     const imageBuffer = Buffer.from(await response.arrayBuffer());
     if (imageBuffer.length > MAX_INPUT_BYTES) {
-      throw new Error('La imagen supera los 10 MB.');
+      throw new Error('La imagen supera los 20 MB.');
     }
 
     const metadata = await sharp(imageBuffer).metadata();
@@ -201,6 +205,10 @@ async function execute(message) {
     if (metadata.width * metadata.height > MAX_PIXELS) {
       throw new Error('La imagen tiene demasiados píxeles.');
     }
+
+    const swapOrientation = [5, 6, 7, 8].includes(metadata.orientation);
+    const width = swapOrientation ? metadata.height : metadata.width;
+    const height = swapOrientation ? metadata.width : metadata.height;
 
     cooldowns.set(message.author.id, Date.now());
     clearState(message.author.id);
@@ -214,6 +222,8 @@ async function execute(message) {
       userId: message.author.id,
       messageId: statusMessage.id,
       imageBuffer,
+      width,
+      height,
       tone: null,
       volume: null,
       createdAt: Date.now(),
@@ -228,7 +238,7 @@ async function execute(message) {
       content:
         '🎛️ **Elegí la tonalidad**\n' +
         'Te muestro la misma foto con 3 niveles de brillo. Después elegís si querés texto.\n' +
-        '*El preview es de baja resolución; el render final sale en 1200 px.*',
+        '*El preview es de baja resolución; el render final respeta la resolución original (máx. 4000 px).*',
       files: [{ attachment: sheet, name: 'eurobeat-tonos.png' }],
       components: [toneRow()],
     });

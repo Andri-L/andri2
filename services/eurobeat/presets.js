@@ -68,9 +68,16 @@ const MODES = {
 };
 
 const PREVIEW_SIZE = 320;
-const FINAL_SIZE = 1200;
-const FALLBACK_SIZE = 1000;
-const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
+const MAX_OUTPUT_SIDE = 4000;
+const MAX_INPUT_BYTES = 20 * 1024 * 1024;
+const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
+
+/**
+ * Tamaño de salida: conserva la resolución original y limita el lado mayor a 4000 px.
+ */
+function outputSizeFor(width, height) {
+  return Math.min(MAX_OUTPUT_SIDE, Math.max(width, height));
+}
 
 function randomVolume() {
   return 1 + Math.floor(Math.random() * 100);
@@ -97,12 +104,13 @@ function buildOptions({ toneKey, modeKey, size, volume }) {
 
 module.exports = {
   BASE_FINISH,
-  FALLBACK_SIZE,
-  FINAL_SIZE,
+  MAX_INPUT_BYTES,
+  MAX_OUTPUT_SIDE,
   MAX_UPLOAD_BYTES,
   MODES,
   PREVIEW_SIZE,
   TONES,
   buildOptions,
+  outputSizeFor,
   randomVolume,
 };

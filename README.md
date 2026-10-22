@@ -42,15 +42,15 @@ Attach an image to the message, or reply to an image with the command. The bot t
 3. Asks whether the final image should include text.
 4. If the user chooses text: crops to 1:1, adds `SUPER EUROBEAT` and a random `VOL. N` (N between 1 and 100).
 5. If the user chooses no text: returns the full image without cropping or typography.
-6. Renders the final PNG at 1200 px and sends it to Discord.
+6. Keeps the original resolution, capped at 4000 px on the longest side.
 
 Limits and behavior:
 
 - One active preview per user, valid for 15 minutes.
 - 20-second cooldown between requests.
-- Input images up to 10 MB.
+- Input images up to 20 MB.
 - The full pipeline, fonts and preview logic live in `services/eurobeat/`.
-- The final image falls back to 1000 px (or JPEG) if the PNG exceeds Discord's upload limit.
+- If the final PNG exceeds 20 MB, it is converted to JPEG automatically.
 
 ## Environment Variables
 
